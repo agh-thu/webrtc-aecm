@@ -323,6 +323,7 @@ static void ResetAdaptiveChannelC(AecmCore *aecm) {
 }
 
 // Initialize function pointers for ARM Neon platform.
+/*
 #if defined(WEBRTC_HAS_NEON)
 static void WebRtcAecm_InitNeon(void) {
   WebRtcAecm_StoreAdaptiveChannel = WebRtcAecm_StoreAdaptiveChannelNeon;
@@ -330,7 +331,7 @@ static void WebRtcAecm_InitNeon(void) {
   WebRtcAecm_CalcLinearEnergies = WebRtcAecm_CalcLinearEnergiesNeon;
 }
 #endif
-
+*/
 // Initialize function pointers for MIPS platform.
 #if defined(MIPS32_LE)
 static void WebRtcAecm_InitMips(void) {

@@ -7,7 +7,7 @@
  *  in the file PATENTS.  All contributing project authors may
  *  be found in the AUTHORS file in the root of the source tree.
  */
-
+/*
 #include <arm_neon.h>
 
 #include "real_fft.h"
@@ -199,3 +199,4 @@ void WebRtcAecm_ResetAdaptiveChannelNeon(AecmCore *aecm) {
     aecm->channelAdapt16[PART_LEN] = aecm->channelStored[PART_LEN];
     aecm->channelAdapt32[PART_LEN] = (int32_t) aecm->channelStored[PART_LEN] << 16;
 }
+*/
