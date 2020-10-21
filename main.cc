@@ -18,6 +18,138 @@
 #include "aecm/echo_control_mobile.h"
 
 
+#include <windows.h>
+#include <iostream>
+#include <stdio.h>
+
+using namespace std;
+using namespace webrtc;
+
+#define NUM_BANDS 1
+#define NUM_SAMPLES 160
+
+int main(int argc, char** argv) {
+
+    short far_frame_s[NUM_SAMPLES];
+    short near_frame_s[NUM_SAMPLES];
+    short out_frame_s[NUM_SAMPLES];
+    float far_frame_f[NUM_SAMPLES];
+    float* near_frame_f[NUM_BANDS];
+    float* out_frame_f[NUM_BANDS];
+    int i = 0;
+    int16_t echoMode = 3;// 0, 1, 2, 3 (default), 4
+    int16_t msInSndCardBuf = 40;
+    double startTime = now();
+
+
+    AecmConfig config;
+    config.cngMode = AecmTrue;
+    config.echoMode = nMode;// 0, 1, 2, 3 (default), 4
+    size_t samples = MIN(160, sampleRate / 100);
+    if (samples == 0)
+        return -1;
+    const int maxSamples = 160;
+
+
+
+    for (int i = 0; i < NUM_BANDS; i++)
+    {
+        near_frame_f[i] = new float[NUM_SAMPLES];
+        out_frame_f[i] = new float[NUM_SAMPLES];
+    }
+    
+   
+  
+    config.nlpMode = kAecNlpModerate;
+    WebRtcAec_set_config(pAec, config);
+
+    void* aecmInst = WebRtcAecm_Create();
+    if (aecmInst == NULL) return -1;
+    int status = WebRtcAecm_Init(aecmInst, 16000);//8000 or 16000 Sample rate
+    if (status != 0) {
+        printf("WebRtcAecm_Init fail\n");
+        WebRtcAecm_Free(aecmInst);
+        return -1;
+    }
+    status = WebRtcAecm_set_config(aecmInst, config);
+    if (status != 0) {
+        printf("WebRtcAecm_set_config fail\n");
+        WebRtcAecm_Free(aecmInst);
+        return -1;
+    }
+
+
+    FILE* fEcho = fopen("speaker_16bit_16k.pcm", "rb");
+    FILE* fMicin = fopen("micin_16bit_16k.pcm", "rb");
+    FILE* fOut = fopen("out_16bit_16k.pcm", "wb");
+    if (!fEcho || !fMicin || !fOut)
+    {
+        goto fail;
+    }
+
+    while (1)
+    {
+        if (NUM_SAMPLES == fread(far_frame_s, sizeof(short), NUM_SAMPLES, fEcho))
+        {
+            for (i = 0; i < NUM_SAMPLES; i++) //convert short to float
+            {
+                far_frame_f[i] = far_frame_s[i];
+            }
+            //WebRtcAec_BufferFarend(pAec, far_frame_f, NUM_SAMPLES);
+
+            if (WebRtcAecm_BufferFarend(aecmInst, far_frame_f, NUM_SAMPLES) != 0) {
+                printf("WebRtcAecm_BufferFarend() failed.");
+                WebRtcAecm_Free(aecmInst);
+                return -1;
+            }
+
+            fread(near_frame_s, sizeof(short), NUM_SAMPLES, fMicin);
+            for (i = 0; i < NUM_SAMPLES; i++) //convert short to float
+            {
+                near_frame_f[0][i] = near_frame_s[i];
+            }
+
+            //WebRtcAec_Process(pAec, near_frame_f, NUM_BANDS, out_frame_f, NUM_SAMPLES, 40, 0); //Win7 Desktop,use 70
+
+            int nRet = WebRtcAecm_Process(aecmInst, near_frame_f, NULL, out_frame_f, NUM_SAMPLES, msInSndCardBuf);
+
+            if (nRet != 0) {
+                printf("failed in WebRtcAecm_Process\n");
+                WebRtcAecm_Free(aecmInst);
+                return -1;
+            }
+
+            for (i = 0; i < NUM_SAMPLES; i++) //convert float to short
+            {
+                out_frame_s[i] = (short)out_frame_f[0][i];
+            }
+            fwrite(out_frame_s, sizeof(short), NUM_SAMPLES, fOut);
+        }
+        else {
+            break;
+        }
+
+    }
+
+fail:
+    fclose(fEcho);
+    fclose(fMicin);
+    fclose(fOut);
+
+    for (int i = 0; i < NUM_BANDS; i++)
+    {
+        delete[]near_frame_f[i];
+        delete[]out_frame_f[i];
+    }
+    WebRtcAec_Free(pAec);
+    double elapsed_time = calcElapsed(startTime, now());
+    cout << "AEC完成！" << endl;
+    system("pause");
+    return 0;
+}
+
+/*
+
 //写wav文件
 void wavWrite_int16(char *filename, int16_t *buffer, size_t sampleRate, size_t totalSampleCount) {
     drwav wav;
@@ -193,3 +325,4 @@ int main(int argc, char *argv[]) {
     getchar();
     return 0;
 }
+*/

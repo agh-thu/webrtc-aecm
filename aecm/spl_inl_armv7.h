@@ -11,7 +11,7 @@
 /* This header file includes the inline functions for ARM processors in
  * the fix point signal processing library.
  */
-
+/*
 #ifndef COMMON_AUDIO_SIGNAL_PROCESSING_INCLUDE_SPL_INL_ARMV7_H_
 #define COMMON_AUDIO_SIGNAL_PROCESSING_INCLUDE_SPL_INL_ARMV7_H_
 
@@ -134,3 +134,4 @@ static __inline int16_t WebRtcSpl_SatW32ToW16(int32_t value32) {
 }
 
 #endif  // COMMON_AUDIO_SIGNAL_PROCESSING_INCLUDE_SPL_INL_ARMV7_H_
+* /

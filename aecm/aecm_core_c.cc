@@ -31,7 +31,21 @@ static const ALIGN8_BEG int16_t
         14384, 14571, 14749, 14918, 15079, 15231, 15373, 15506, 15631, 15746, 15851,
         15947, 16034, 16111, 16179, 16237, 16286, 16325, 16354, 16373, 16384};
 
-#ifdef AECM_WITH_ABS_APPROX
+
+// Q15 alpha = 0.99439986968132  const Factor for magnitude approximation
+static const uint16_t kAlpha1 = 32584;
+// Q15 beta = 0.12967166976970   const Factor for magnitude approximation
+static const uint16_t kBeta1 = 4249;
+// Q15 alpha = 0.94234827210087  const Factor for magnitude approximation
+static const uint16_t kAlpha2 = 30879;
+// Q15 beta = 0.33787806009150   const Factor for magnitude approximation
+static const uint16_t kBeta2 = 11072;
+// Q15 alpha = 0.82247698684306  const Factor for magnitude approximation
+static const uint16_t kAlpha3 = 26951;
+// Q15 beta = 0.57762063060713   const Factor for magnitude approximation
+static const uint16_t kBeta3 = 18927;
+
+/*#ifdef AECM_WITH_ABS_APPROX
 // Q15 alpha = 0.99439986968132  const Factor for magnitude approximation
 static const uint16_t kAlpha1 = 32584;
 // Q15 beta = 0.12967166976970   const Factor for magnitude approximation
@@ -45,9 +59,31 @@ static const uint16_t kAlpha3 = 26951;
 // Q15 beta = 0.57762063060713   const Factor for magnitude approximation
 static const uint16_t kBeta3 = 18927;
 #endif
-
+*/
+// 添加噪声计算函数
 static const int16_t kNoiseEstQDomain = 15;
 static const int16_t kNoiseEstIncCount = 5;
+
+static uint32_t IncreaseSeed(uint32_t* seed) {
+    seed[0] = (seed[0] * ((int32_t)69069) + 1) & (kMaxSeedUsed - 1);
+    return seed[0];
+}
+
+int16_t WebRtcSpl_RandU(uint32_t* seed) {
+    return (int16_t)(IncreaseSeed(seed) >> 16);
+}
+
+// Creates an array of uniformly distributed variables.
+int16_t WebRtcSpl_RandUArray(int16_t* vector,
+    int16_t vector_length,
+    uint32_t* seed) {
+    int i;
+    for (i = 0; i < vector_length; i++) {
+        vector[i] = WebRtcSpl_RandU(seed);
+    }
+    return vector_length;
+}
+
 
 static void ComfortNoise(AecmCore *aecm,
                          const uint16_t *dfa,
@@ -156,7 +192,7 @@ static void ComfortNoise(AecmCore *aecm,
                 (int16_t) ((-noiseRShift16[i] * WebRtcAecm_kSinTable[tmp16]) >> 13);
     }
     uImag[PART_LEN] = 0;
-
+    //输出的是复数
     for (i = 0; i < PART_LEN1; i++) {
         out[i].real = WebRtcSpl_AddSatW16(out[i].real, uReal[i]);
         out[i].imag = WebRtcSpl_AddSatW16(out[i].imag, uImag[i]);
@@ -170,7 +206,7 @@ static void WindowAndFFT(AecmCore *aecm,
                          int time_signal_scaling) {
     int i = 0;
 
-    // FFT of signal
+    // FFT of signal，对时域信号加窗
     for (i = 0; i < PART_LEN; i++) {
         // Window time domain signal and insert into real part of
         // transformation array |fft|
@@ -180,6 +216,8 @@ static void WindowAndFFT(AecmCore *aecm,
         fft[PART_LEN + i] = (int16_t) (
                 (scaled_time_signal * WebRtcAecm_kSqrtHanning[PART_LEN - i]) >> 14);
     }
+    //从webrtcAEC  中借鉴分帧加窗
+
 
     // Do forward FFT, then take only the first PART_LEN complex samples,
     // and change signs of the imaginary parts.
@@ -436,6 +474,9 @@ int WebRtcAecm_ProcessBlock(AecmCore *aecm, const int16_t *farend, const int16_t
     }
 
 // Transform far end signal from time domain to frequency domain.
+
+    Fft(aec->ooura_fft, fft, farend_fft);
+
     far_q = TimeToFrequencyDomain(aecm, aecm->xBuf, dfw, xfa, &xfaSum);
 
 // Transform noisy near end signal from time domain to frequency domain.

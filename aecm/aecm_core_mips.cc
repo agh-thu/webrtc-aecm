@@ -48,7 +48,7 @@ static int16_t coefTable_ifft[] = {
         360, 404, 232, 148, 488, 276, 24, 20, 280, 484, 152, 228, 408, 356, 88,
         100, 344, 420, 216, 164, 472, 292, 56, 36, 312, 452, 184, 196, 440, 324,
         120, 68, 376, 388, 248, 132, 504, 260};
-
+/*
 
 static void ComfortNoise(AecmCore *aecm,
                          const uint16_t *dfa,
@@ -1661,3 +1661,4 @@ static void ComfortNoise(AecmCore *aecm,
     sgn = ((int) tt) >> 31;
     out[PART_LEN].imag = sgn == (int16_t) (tt >> 15) ? (int16_t) tt : (16384 ^ sgn);
 }
+*/

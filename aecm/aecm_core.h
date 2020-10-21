@@ -410,6 +410,7 @@ extern ResetAdaptiveChannel WebRtcAecm_ResetAdaptiveChannel;
 // For the above function pointers, functions for generic platforms are declared
 // and defined as static in file aecm_core.c, while those for ARM Neon platforms
 // are declared below and defined in file aecm_core_neon.c.
+/*
 #if defined(WEBRTC_HAS_NEON)
 void WebRtcAecm_CalcLinearEnergiesNeon(AecmCore* aecm,
                                        const uint16_t* far_spectrum,
@@ -424,7 +425,8 @@ void WebRtcAecm_StoreAdaptiveChannelNeon(AecmCore* aecm,
 
 void WebRtcAecm_ResetAdaptiveChannelNeon(AecmCore* aecm);
 #endif
-
+*/
+/*
 #if defined(MIPS32_LE)
 void WebRtcAecm_CalcLinearEnergies_mips(AecmCore* aecm,
                                         const uint16_t* far_spectrum,
@@ -440,6 +442,6 @@ void WebRtcAecm_StoreAdaptiveChannel_mips(AecmCore* aecm,
 void WebRtcAecm_ResetAdaptiveChannel_mips(AecmCore* aecm);
 #endif
 #endif
-
+*/
 
 #endif
